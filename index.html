@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Kalkulator TASKA (GPP 2024)</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 900px; margin: auto; }
+    h2 { color: #004080; text-align: center; background-color: #cceeff; padding: 10px; }
+    label { margin-top: 10px; display: block; }
+input[type="number"], select {
+  display: block;
+  margin-top: 5px;
+}
+input[type="radio"] {
+  display: inline-block;
+  margin-right: 5px;
+}
+.radio-group {
+  margin-top: 10px;
+}
+.radio-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 20px;
+}
+.radio-inline input[type="number"] {
+  margin-left: 5px;
+  width: 60px;
+  display: inline-block;
+}
+    input[type="number"] { width: 80px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+    th { background-color: #eee; }
+    tfoot td { font-weight: bold; }
+    .highlight-warning { background-color: #ffdddd; color: #b30000; font-weight: bold; padding: 10px; margin-top: 10px; }
+    .subheader { font-weight: bold; background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+<h2>Kalkulator Keluasan TASKA (Jadual A8.1(2) - GPP 2024)</h2>
+
+<label for="bil_kanak">Jumlah Kanak-kanak:</label>
+<input type="number" id="bil_kanak" min="0" value="0">
+<div id="quickButtons" style="margin-top:10px;">
+  <span>Jumlah Segera:</span>
+  <button type="button" onclick="setBilKanak(5)">5</button>
+  <button type="button" onclick="setBilKanak(10)">10</button>
+  <button type="button" onclick="setBilKanak(20)">20</button>
+  <button type="button" onclick="setBilKanak(30)">30</button>
+  <button type="button" onclick="setBilKanak(50)">50</button>
+</div>
+
+
+<div class="radio-group">
+  <div class="radio-inline">
+    <input type="radio" name="calc_mode" id="use_default" checked>
+    <label for="use_default" style="margin: 0;">Sirkulasi (25%) + Servis (10%)</label>
+  </div>
+  <div class="radio-inline">
+    <input type="radio" name="calc_mode" id="use_custom">
+    <label for="use_custom" style="margin: 0;">
+      Custom (%): 
+      <input type="number" id="custom_percent" value="0" min="0" max="100" disabled>
+    </label>
+  </div>
+</div>
+
+<div class="highlight-warning" id="customWarning" style="display:none">
+  ⚠️ Amaran: Jumlah peratusan sirkulasi + servis melebihi 35%!
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Bil.</th>
+      <th>Jenis Ruang</th>
+      <th>Keluasan (m²)</th>
+    </tr>
+  </thead>
+  <tbody id="resultTable">
+    <tr><td colspan="3">Sila masukkan jumlah kanak-kanak untuk mengira keluasan.</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2">Jumlah Asas (Tanpa Sirkulasi & Servis)</td>
+      <td id="subtotal">0.00</td>
+    </tr>
+    <tr>
+      <td colspan="2" id="labelSirkulasi">Sirkulasi (25%)</td>
+      <td id="sirkulasi">0.00</td>
+    </tr>
+    <tr>
+      <td colspan="2" id="labelServis">Servis (10%)</td>
+      <td id="servis">0.00</td>
+    </tr>
+    <tr>
+      <td colspan="2">Jumlah GFA (Keseluruhan)</td>
+      <td id="totalArea">0.00 m²</td>
+    </tr>
+  </tfoot>
+</table>
+
+<script>
+function setBilKanak(value) {
+  document.getElementById('bil_kanak').value = value;
+  updateCalculation();
+}
+
+function updateCalculation() {
+let bilKanak = parseInt(document.getElementById('bil_kanak').value || 0);
+bilKanak = Math.max(bilKanak, 0); // Prevent negative input
+document.getElementById('bil_kanak').value = bilKanak; // Update UI
+
+let customPercent = parseFloat(document.getElementById('custom_percent').value || 0);
+customPercent = Math.max(customPercent, 0); // Prevent negative %
+document.getElementById('custom_percent').value = customPercent;
+
+if (bilKanak === 0) {
+  document.getElementById('resultTable').innerHTML = '<tr><td colspan="3">Sila masukkan jumlah kanak-kanak untuk mengira keluasan.</td></tr>';
+  document.getElementById('subtotal').textContent = '0.00';
+  document.getElementById('sirkulasi').textContent = '0.00';
+  document.getElementById('servis').textContent = '0.00';
+  document.getElementById('totalArea').textContent = '0.00 m²';
+  return;
+}
+bilKanak = Math.max(bilKanak, 0); // Prevent negative input
+document.getElementById('bil_kanak').value = bilKanak; // Update input if negative
+  const tbody = document.getElementById('resultTable');
+  const warning = document.getElementById("customWarning");
+  warning.style.display = "none";
+  tbody.innerHTML = '';
+
+  let data = [];
+  let bil = 1;
+  let total = 0;
+
+  // Subheader Pejabat
+  data.push([null, "Pejabat", null, true]);
+  data.push([bil++, "a) Kaunter,<br>b) Ruang Menunggu dan <br>c) Pejabat Penyelia & Pembantu", 20.0]);
+
+  // Subheader Ruang Kanak-kanak
+  data.push([null, "Ruang Kanak-kanak", null, true]);
+  const ruangAktiviti = bilKanak * 3.5;
+  data.push([bil++, `a) Ruang Aktiviti,<br>b) Bilik bayi (0-1 tahun),<br>c) Ruang belajar (2 – 4 tahun),<br>d) Ruang aktiviti,<br>e) Bilik sakit (sick bay)dan<br> f) Ruang makan<br>(${bilKanak} x 3.5)`, ruangAktiviti]);
+  data.push([bil++, "Bilik Menyusu untuk 2 orang ibu", 12.0]);
+
+  // Subheader Ruang Sokongan
+  data.push([null, "Ruang Sokongan", null, true]);
+  const sokongan = Math.min(ruangAktiviti * 0.25, 45.0);
+  data.push([bil++, `a) Bilik Rehat Pengajar/Pengasuh,<br>b) Bilik Persediaan Pengajar/Pengasuh,<br>c) Bilik Fail<br>d) Dapur dan <br> e) Bilik Utiliti
+ <br>(25% dari ruang kanak-kanak atau maks 45.0)`, sokongan]);
+
+  // Subheader Ruang Basah
+  data.push([null, "Ruang Basah", null, true]);
+  const tandasKanak = ruangAktiviti * 0.10;
+  data.push([bil++, `Tandas/Ruang mandi kanak-kanak (10% dari ruang aktiviti)`, tandasKanak]);
+
+  // Render data
+  data.forEach(([num, label, area, isHeader]) => {
+    if (isHeader) {
+      tbody.innerHTML += `<tr class='subheader'><td colspan='3'>${label}</td></tr>`;
+    } else {
+      total += area;
+      tbody.innerHTML += `<tr><td>${num}</td><td>${label}</td><td>${area.toFixed(2)}</td></tr>`;
+    }
+  });
+
+  document.getElementById('subtotal').textContent = total.toFixed(2);
+
+  let sirkulasi = 0;
+  let servis = 0;
+
+  if (document.getElementById('use_default').checked) {
+    sirkulasi = total * 0.25;
+    servis = total * 0.10;
+    document.getElementById('labelSirkulasi').textContent = 'Sirkulasi (25%)';
+    document.getElementById('labelServis').textContent = 'Servis (10%)';
+  } else if (document.getElementById('use_custom').checked) {
+    const customPercent = parseFloat(document.getElementById('custom_percent').value || 0);
+    if (customPercent > 35) warning.style.display = "block";
+    const custom = total * (customPercent / 100);
+    sirkulasi = custom;
+    servis = 0;
+    document.getElementById('labelSirkulasi').textContent = `Tambahan Custom (${customPercent}%)`;
+    document.getElementById('labelServis').textContent = '';
+  }
+
+  const jumlah = total + sirkulasi + servis;
+
+  document.getElementById('sirkulasi').textContent = sirkulasi.toFixed(2);
+  document.getElementById('servis').textContent = servis.toFixed(2);
+  document.getElementById('totalArea').textContent = jumlah.toFixed(2) + ' m²';
+}
+
+document.getElementById('bil_kanak').addEventListener('input', updateCalculation);
+document.getElementById('use_default').addEventListener('change', () => {
+  document.getElementById('custom_percent').disabled = true;
+  updateCalculation();
+});
+document.getElementById('use_custom').addEventListener('change', () => {
+  document.getElementById('custom_percent').disabled = false;
+  updateCalculation();
+});
+document.getElementById('custom_percent').addEventListener('input', updateCalculation);
+window.onload = updateCalculation;
+</script>
+
+</body>
+</html>
