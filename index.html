@@ -104,186 +104,372 @@
       background-color: #f2f2f2;
     }
 
-    input[type="number"] { width: 80px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #999; padding: 8px; text-align: left; }
-    th { background-color: #eee; }
-    tfoot td { font-weight: bold; }
-    .highlight-warning { background-color: #ffdddd; color: #b30000; font-weight: bold; padding: 10px; margin-top: 10px; }
-    .subheader { font-weight: bold; background-color: #f2f2f2; }
-  </style>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    .ratio-table {
+      margin-top: 10px;
+      margin-bottom: 20px;
+      width: auto;
+    }
 
+    .ratio-table th, .ratio-table td {
+      padding: 8px;
+      text-align: center;
+    }
+
+    .action-buttons {
+      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .action-buttons button {
+      padding: 8px 16px;
+      background-color: #004080;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .action-buttons button:hover {
+      background-color: #002b57;
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 0mm; /* Override browser default margins */
+      }
+      .no-print {
+        display: none !important;
+      }
+      body {
+        width: 210mm; /* Exact A4 width */
+        margin: 0;
+        padding: 0;
+        font-size: 10pt;
+        box-sizing: border-box;
+        overflow: visible;
+      }
+      #results-container {
+        width: 210mm !important; /* Full A4 width */
+        margin: 0 auto !important;
+        padding: 0;
+      }
+      table {
+        width: 100% !important; /* Ensure full width of container */
+        min-width: 210mm !important; /* Force minimum width to match A4 */
+        margin: 0 auto !important;
+        font-size: 9pt !important;
+        border-collapse: collapse;
+        transform: scale(1); /* Prevent browser scaling */
+        transform-origin: top left;
+      }
+      th, td {
+        padding: 2mm !important;
+        border: 1px solid #999;
+        text-align: left;
+        word-wrap: break-word;
+        white-space: normal;
+      }
+      th:nth-child(1), td:nth-child(1) {
+        width: 10%;
+      }
+      th:nth-child(2), td:nth-child(2) {
+        width: 70%;
+      }
+      th:nth-child(3), td:nth-child(3) {
+        width: 20%;
+      }
+      h2 {
+        text-align: center;
+        width: 100%;
+        font-size: 12pt;
+        margin: 0 auto;
+      }
+      .ratio-table {
+        width: 50% !important;
+        margin: 0 auto !important;
+      }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+  <h2>Kalkulator Keluasan Maksimum TASKA</h2>
+  <div class="no-print">
+    <table class="ratio-table">
+      <caption style="font-weight: bold; text-align: center;">NISBAH PECAHAN GURU KEPADA KANAK-KANAK MENGIKUT KATEGORI</caption>
+      <thead>
+        <tr>
+          <th>KATEGORI</th>
+          <th>NISBAH GURU : KANAK-KANAK</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0 – 1 tahun</td>
+          <td>1 : 3</td>
+        </tr>
+        <tr>
+          <td>1 – 3 tahun</td>
+          <td style="text-align: center;">1 : 5</td>
+        </tr>
+        <tr>
+          <td>3 – 4 tahun</td>
+          <td>1 : 10</td>
+        </tr>
+      </tbody>
+    </table>
 
-<h2>Kalkulator Keluasan TASKA (Jadual A8.1(2) - GPP 2024)</h2>
+    <label style="font-weight: bold; text-align: center; background-color: rgb(213, 238, 251);">Bilangan Kanak-kanak di TASKA</label>
+    <label for="bil_kanak">Jumlah Kanak-kanak:</label>
+    <input type="number" id="bil_kanak" min="0" value="0">
+    <div id="quickButtons" style="margin-top:10px;">
+      <span>Jumlah Segera:</span>
+      <button type="button" onclick="setBilKanak(5)">5</button>
+      <button type="button" onclick="setBilKanak(10)">10</button>
+      <button type="button" onclick="setBilKanak(20)">20</button>
+      <button type="button" onclick="setBilKanak(30)">30</button>
+      <button type="button" onclick="setBilKanak(50)">50</button>
+    </div>
 
-<label for="bil_kanak">Jumlah Kanak-kanak:</label>
-<input type="number" id="bil_kanak" min="0" value="0">
-<div id="quickButtons" style="margin-top:10px;">
-  <span>Jumlah Segera:</span>
-  <button type="button" onclick="setBilKanak(5)">5</button>
-  <button type="button" onclick="setBilKanak(10)">10</button>
-  <button type="button" onclick="setBilKanak(20)">20</button>
-  <button type="button" onclick="setBilKanak(30)">30</button>
-  <button type="button" onclick="setBilKanak(50)">50</button>
-</div>
+    <br><label style="font-weight: bold; text-align: center; background-color: rgb(213, 238, 251);">Jumlah Ruang Sirkulasi dan Servis</label>
+    <div class="radio-group">
+      <div class="radio-inline">
+        <input type="radio" name="calc_mode" id="use_default" checked>
+        <label for="use_default" style="margin: 0;">Sirkulasi (25%) + Servis (10%)</label>
+      </div>
+      <div class="radio-inline">
+        <input type="radio" name="calc_mode" id="use_custom">
+        <label for="use_custom" style="margin: 0;">
+          Sirkulasi+Servis Manual (%): 
+          <input type="number" id="custom_percent" value="0" min="0" max="100" disabled>
+        </label>
+      </div>
+    </div>
 
-
-<div class="radio-group">
-  <div class="radio-inline">
-    <input type="radio" name="calc_mode" id="use_default" checked>
-    <label for="use_default" style="margin: 0;">Sirkulasi (25%) + Servis (10%)</label>
+    <div class="highlight-warning" id="customWarning" style="display:none">
+      ⚠️ Amaran: Jumlah peratusan sirkulasi + servis melebihi 35%!
+    </div>
   </div>
-  <div class="radio-inline">
-    <input type="radio" name="calc_mode" id="use_custom">
-    <label for="use_custom" style="margin: 0;">
-      Sirkulasi+Servis Manual (%): 
-      <input type="number" id="custom_percent" value="0" min="0" max="100" disabled>
-    </label>
+
+  <div id="results-container">
+    <label style="font-weight: bold; text-align: center; background-color: rgb(213, 238, 251);">Jadual Keperluan Ruang (SOA) TASKA </label>
+    <table>
+      <thead>
+        <tr>
+          <th>Bil.</th>
+          <th>Jenis Ruang</th>
+          <th>Keluasan (m²)</th>
+        </tr>
+      </thead>
+      <tbody id="resultTable">
+        <tr><td colspan="3">Sila masukkan jumlah kanak-kanak untuk mengira keluasan.</td></tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">Jumlah NFA <br>(Tanpa Sirkulasi dan Servis)</td>
+          <td id="subtotal">0.00</td>
+        </tr>
+        <tr>
+          <td colspan="2" id="labelSirkulasi">Sirkulasi (25%)</td>
+          <td id="sirkulasi">0.00</td>
+        </tr>
+        <tr>
+          <td colspan="2" id="labelServis">Servis (10%)</td>
+          <td id="servis">0.00</td>
+        </tr>
+        <tr>
+          <td colspan="2">Jumlah GFA (Keseluruhan)</td>
+          <td id="totalArea">0.00 m²</td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
-</div>
 
-<div class="highlight-warning" id="customWarning" style="display:none">
-  ⚠️ Amaran: Jumlah peratusan sirkulasi + servis melebihi 35%!
-</div>
+  <div class="action-buttons no-print">
+    <button onclick="window.print()">Cetak</button>
+    <button onclick="exportToTextPDF()">Export ke PDF</button>
+  </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Bil.</th>
-      <th>Jenis Ruang</th>
-      <th>Keluasan (m²)</th>
-    </tr>
-  </thead>
-  <tbody id="resultTable">
-    <tr><td colspan="3">Sila masukkan jumlah kanak-kanak untuk mengira keluasan.</td></tr>
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colspan="2">Jumlah NFA <br>(Tanpa Sirkulasi dan Servis)</td>
-      <td id="subtotal">0.00</td>
-    </tr>
-    <tr>
-      <td colspan="2" id="labelSirkulasi">Sirkulasi (25%)</td>
-      <td id="sirkulasi">0.00</td>
-    </tr>
-    <tr>
-      <td colspan="2" id="labelServis">Servis (10%)</td>
-      <td id="servis">0.00</td>
-    </tr>
-    <tr>
-      <td colspan="2">Jumlah GFA (Keseluruhan)</td>
-      <td id="totalArea">0.00 m²</td>
-    </tr>
-  </tfoot>
-</table>
+  <script>
+    // Initialize jsPDF
+    const { jsPDF } = window.jspdf;
 
-<script>
-function setBilKanak(value) {
-  document.getElementById('bil_kanak').value = value;
-  updateCalculation();
-}
-
-function updateCalculation() {
-let bilKanak = parseInt(document.getElementById('bil_kanak').value || 0);
-bilKanak = Math.max(bilKanak, 0); // Prevent negative input
-document.getElementById('bil_kanak').value = bilKanak; // Update UI
-
-let customPercent = parseFloat(document.getElementById('custom_percent').value || 0);
-customPercent = Math.max(customPercent, 0); // Prevent negative %
-document.getElementById('custom_percent').value = customPercent;
-
-if (bilKanak === 0) {
-  document.getElementById('resultTable').innerHTML = '<tr><td colspan="3">Sila masukkan jumlah kanak-kanak untuk mengira keluasan.</td></tr>';
-  document.getElementById('subtotal').textContent = '0.00';
-  document.getElementById('sirkulasi').textContent = '0.00';
-  document.getElementById('servis').textContent = '0.00';
-  document.getElementById('totalArea').textContent = '0.00 m²';
-  return;
-}
-bilKanak = Math.max(bilKanak, 0); // Prevent negative input
-document.getElementById('bil_kanak').value = bilKanak; // Update input if negative
-  const tbody = document.getElementById('resultTable');
-  const warning = document.getElementById("customWarning");
-  warning.style.display = "none";
-  tbody.innerHTML = '';
-
-  let data = [];
-  let bil = 1;
-  let total = 0;
-
-  // Subheader Pejabat
-  data.push([null, "Pejabat", null, true]);
-  data.push([bil++, "a) Kaunter,<br>b) Ruang Menunggu dan <br>c) Pejabat Penyelia & Pembantu", 20.0]);
-
-  // Subheader Ruang Kanak-kanak
-  data.push([null, "Ruang Kanak-kanak", null, true]);
-  const ruangAktiviti = bilKanak * 3.5;
-  data.push([bil++, `a) Ruang Aktiviti,<br>b) Bilik bayi (0-1 tahun),<br>c) Ruang belajar (2 – 4 tahun),<br>d) Ruang aktiviti,<br>e) Bilik sakit (sick bay)dan<br> f) Ruang makan<br>(${bilKanak} x 3.5)`, ruangAktiviti]);
-  data.push([bil++, "Bilik Menyusu untuk 2 orang ibu", 12.0]);
-
-  // Subheader Ruang Sokongan
-  data.push([null, "Ruang Sokongan", null, true]);
-  const sokongan = Math.min(ruangAktiviti * 0.25, 45.0);
-  data.push([bil++, `a) Bilik Rehat Pengajar/Pengasuh,<br>b) Bilik Persediaan Pengajar/Pengasuh,<br>c) Bilik Fail<br>d) Dapur dan <br> e) Bilik Utiliti
- <br>(25% dari ruang kanak-kanak atau maks 45.0)`, sokongan]);
-
-  // Subheader Ruang Basah
-  data.push([null, "Ruang Basah", null, true]);
-  const tandasKanak = ruangAktiviti * 0.10;
-  data.push([bil++, `Tandas/Ruang mandi kanak-kanak (10% dari ruang aktiviti)`, tandasKanak]);
-
-  // Render data
-  data.forEach(([num, label, area, isHeader]) => {
-    if (isHeader) {
-      tbody.innerHTML += `<tr class='subheader'><td colspan='3'>${label}</td></tr>`;
-    } else {
-      total += area;
-      tbody.innerHTML += `<tr><td>${num}</td><td>${label}</td><td>${area.toFixed(2)}</td></tr>`;
+    function setBilKanak(value) {
+      document.getElementById('bil_kanak').value = value;
+      updateCalculation();
     }
-  });
 
-  document.getElementById('subtotal').textContent = total.toFixed(2);
+    function updateCalculation() {
+      let bilKanak = parseInt(document.getElementById('bil_kanak').value || 0);
+      bilKanak = Math.max(bilKanak, 0);
+      document.getElementById('bil_kanak').value = bilKanak;
 
-  let sirkulasi = 0;
-  let servis = 0;
+      let customPercent = parseFloat(document.getElementById('custom_percent').value || 0);
+      customPercent = Math.max(customPercent, 0);
+      document.getElementById('custom_percent').value = customPercent;
 
-  if (document.getElementById('use_default').checked) {
-    sirkulasi = total * 0.25;
-    servis = total * 0.10;
-    document.getElementById('labelSirkulasi').textContent = 'Sirkulasi (25%)';
-    document.getElementById('labelServis').textContent = 'Servis (10%)';
-  } else if (document.getElementById('use_custom').checked) {
-    const customPercent = parseFloat(document.getElementById('custom_percent').value || 0);
-    if (customPercent > 35) warning.style.display = "block";
-    const custom = total * (customPercent / 100);
-    sirkulasi = custom;
-    servis = 0;
-    document.getElementById('labelSirkulasi').textContent = `Tambahan Custom (${customPercent}%)`;
-    document.getElementById('labelServis').textContent = '';
-  }
+      if (bilKanak === 0) {
+        document.getElementById('resultTable').innerHTML = '<tr><td colspan="3">Sila masukkan jumlah kanak-kanak untuk mengira keluasan.</td></tr>';
+        document.getElementById('subtotal').textContent = '0.00';
+        document.getElementById('sirkulasi').textContent = '0.00';
+        document.getElementById('servis').textContent = '0.00';
+        document.getElementById('totalArea').textContent = '0.00 m²';
+        return;
+      }
 
-  const jumlah = total + sirkulasi + servis;
+      const tbody = document.getElementById('resultTable');
+      const warning = document.getElementById("customWarning");
+      warning.style.display = "none";
+      tbody.innerHTML = '';
 
-  document.getElementById('sirkulasi').textContent = sirkulasi.toFixed(2);
-  document.getElementById('servis').textContent = servis.toFixed(2);
-  document.getElementById('totalArea').textContent = jumlah.toFixed(2) + ' m²';
-}
+      let data = [];
+      let bil = 1;
+      let total = 0;
 
-document.getElementById('bil_kanak').addEventListener('input', updateCalculation);
-document.getElementById('use_default').addEventListener('change', () => {
-  document.getElementById('custom_percent').disabled = true;
-  updateCalculation();
-});
-document.getElementById('use_custom').addEventListener('change', () => {
-  document.getElementById('custom_percent').disabled = false;
-  updateCalculation();
-});
-document.getElementById('custom_percent').addEventListener('input', updateCalculation);
-window.onload = updateCalculation;
-</script>
+      data.push([null, "Pejabat", null, true]);
+      data.push([bil++, "a) Kaunter,<br>b) Ruang Menunggu dan <br>c) Pejabat Penyelia & Pembantu", 20.0]);
 
+      data.push([null, "Ruang Kanak-kanak", null, true]);
+      const ruangAktiviti = bilKanak * 3.5;
+      data.push([bil++, `a) Ruang Aktiviti,<br>b) Bilik bayi (0-1 tahun),<br>c) Ruang belajar (2 – 4 tahun),<br>d) Ruang aktiviti,<br>e) Bilik sakit (sick bay)dan<br> f) Ruang makan<br>(${bilKanak} x 3.5)`, ruangAktiviti]);
+      data.push([bil++, "Bilik Menyusu untuk 2 orang ibu", 12.0]);
+
+      data.push([null, "Ruang Sokongan", null, true]);
+      const sokongan = Math.min(ruangAktiviti * 0.25, 45.0);
+      data.push([bil++, `a) Bilik Rehat Pengajar/Pengasuh,<br>b) Bilik Persediaan Pengajar/Pengasuh,<br>c) Bilik Fail<br>d) Dapur dan <br> e) Bilik Utiliti<br>(25% dari ruang kanak-kanak atau maks 45.0)`, sokongan]);
+
+      data.push([null, "Ruang Basah", null, true]);
+      const tandasKanak = ruangAktiviti * 0.10;
+      data.push([bil++, `Tandas/Ruang mandi kanak-kanak (10% dari ruang aktiviti)`, tandasKanak]);
+
+      data.forEach(([num, label, area, isHeader]) => {
+        if (isHeader) {
+          tbody.innerHTML += `<tr class='subheader'><td colspan='3'>${label}</td></tr>`;
+        } else {
+          total += area;
+          tbody.innerHTML += `<tr><td>${num}</td><td>${label}</td><td>${area.toFixed(2)}</td></tr>`;
+        }
+      });
+
+      document.getElementById('subtotal').textContent = total.toFixed(2);
+
+      let sirkulasi = 0, servis = 0;
+      if (document.getElementById('use_default').checked) {
+        sirkulasi = total * 0.25;
+        servis = total * 0.10;
+        document.getElementById('labelSirkulasi').textContent = 'Sirkulasi (25%)';
+        document.getElementById('labelServis').textContent = 'Servis (10%)';
+      } else if (document.getElementById('use_custom').checked) {
+        if (customPercent > 35) warning.style.display = "block";
+        const custom = total * (customPercent / 100);
+        sirkulasi = custom;
+        servis = 0;
+        document.getElementById('labelSirkulasi').textContent = `Tambahan Custom (${customPercent}%)`;
+        document.getElementById('labelServis').textContent = '';
+      }
+
+      const jumlah = total + sirkulasi + servis;
+      document.getElementById('sirkulasi').textContent = sirkulasi.toFixed(2);
+      document.getElementById('servis').textContent = servis.toFixed(2);
+      document.getElementById('totalArea').textContent = jumlah.toFixed(2) + ' m²';
+    }
+
+    function exportToTextPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const title = "Kalkulator Keluasan Maksimum TASKA";
+      const date = new Date().toLocaleDateString('ms-MY');
+      const pageWidth = 210;
+      const margin = 10;
+      const maxWidth = pageWidth - 2 * margin;
+
+      // Add title and date
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(title, pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text('Dihasilkan pada: ' + date, pageWidth / 2, 22, { align: 'center' });
+
+      // Get calculation data
+      const bilKanak = parseInt(document.getElementById('bil_kanak').value) || 0;
+      const subtotal = parseFloat(document.getElementById('subtotal').textContent) || 0;
+      const sirkulasi = parseFloat(document.getElementById('sirkulasi').textContent) || 0;
+      const servis = parseFloat(document.getElementById('servis').textContent) || 0;
+      const totalArea = document.getElementById('totalArea').textContent;
+
+      // Calculate areas
+      const ruangAktiviti = bilKanak * 3.5;
+      const sokongan = Math.min(ruangAktiviti * 0.25, 45.0);
+      const tandasKanak = ruangAktiviti * 0.10;
+
+      // Prepare table data
+      const tableData = [
+        [{ content: '1. Pejabat', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [242, 242, 242] } }],
+        ['1', 'a) Kaunter, b) Ruang Menunggu dan c) Pejabat Penyelia & Pembantu', '20.00'],
+        [{ content: '2. Ruang Kanak-kanak', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [242, 242, 242] } }],
+        ['2', `a) Ruang Aktiviti, b) Bilik bayi (0-1 tahun), c) Ruang belajar (2–4 tahun), d) Ruang aktiviti, e) Bilik sakit (sick bay) dan f) Ruang makan (${bilKanak} x 3.5)`, ruangAktiviti.toFixed(2)],
+        ['3', 'Bilik Menyusu untuk 2 orang ibu', '12.00'],
+        [{ content: '3. Ruang Sokongan', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [242, 242, 242] } }],
+        ['4', `a) Bilik Rehat Pengajar/Pengasuh, b) Bilik Persediaan Pengajar/Pengasuh, c) Bilik Fail, d) Dapur dan e) Bilik Utiliti (25% dari ruang kanak-kanak atau maks 45.0)`, sokongan.toFixed(2)],
+        [{ content: '4. Ruang Basah', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [242, 242, 242] } }],
+        ['5', 'Tandas/Ruang mandi kanak-kanak (10% dari ruang aktiviti)', tandasKanak.toFixed(2)],
+        [{ content: 'Jumlah NFA (Tanpa Sirkulasi dan Servis)', colSpan: 2, styles: { fontStyle: 'bold' } }, subtotal.toFixed(2)],
+        [{ content: document.getElementById('labelSirkulasi').textContent, colSpan: 2, styles: { fontStyle: 'bold' } }, sirkulasi.toFixed(2)],
+        [{ content: document.getElementById('labelServis').textContent || '', colSpan: 2, styles: { fontStyle: 'bold' } }, servis.toFixed(2)],
+        [{ content: 'Jumlah GFA (Keseluruhan)', colSpan: 2, styles: { fontStyle: 'bold' } }, totalArea]
+      ];
+
+      // Add table using autoTable
+      doc.autoTable({
+        startY: 30,
+        head: [['Bil.', 'Jenis Ruang', 'Keluasan (m²)']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          font: 'helvetica',
+          fontSize: 9,
+          cellPadding: 2,
+          overflow: 'linebreak'
+        },
+        headStyles: {
+          fillColor: [0, 64, 128],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        columnStyles: {
+          0: { cellWidth: 19 }, // 10% of 190mm
+          1: { cellWidth: 133 }, // 70% of 190mm
+          2: { cellWidth: 38 } // 20% of 190mm
+        },
+        margin: { top: 30, left: margin, right: margin }
+      });
+
+      // Save the PDF
+      doc.save('Kalkulator_TASKA_' + date.replace(/\//g, '-') + '.pdf');
+    }
+
+    document.getElementById('bil_kanak').addEventListener('input', updateCalculation);
+    document.getElementById('use_default').addEventListener('change', () => {
+      document.getElementById('custom_percent').disabled = true;
+      updateCalculation();
+    });
+    document.getElementById('use_custom').addEventListener('change', () => {
+      document.getElementById('custom_percent').disabled = false;
+      updateCalculation();
+    });
+    document.getElementById('custom_percent').addEventListener('input', updateCalculation);
+    window.onload = updateCalculation;
+  </script>
 </body>
 </html>
